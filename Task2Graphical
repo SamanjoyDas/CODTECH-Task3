@@ -1,0 +1,405 @@
+/* Student Grade Tracker User Interface */
+
+
+import tkinter as tk
+from tkinter import messagebox, ttk
+import sqlite3
+
+# Database setup
+conn = sqlite3.connect('inventory.db')
+c = conn.cursor()
+
+# Create tables
+c.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT NOT NULL
+    )
+''')
+
+c.execute('''
+    CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        price REAL NOT NULL
+    )
+''')
+
+c.execute('''
+    CREATE TABLE IF NOT EXISTS sales (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER,
+        quantity_sold INTEGER,
+        total_price REAL,
+        sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id)
+    )
+''')
+
+# Insert a default user (username: admin, password: admin)
+c.execute('''
+    INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)
+''', ('admin', 'admin'))
+
+conn.commit()
+
+# User Authentication
+def authenticate(username, password):
+    c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+    return c.fetchone()
+
+# Inventory Management System
+class InventorySystem:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Inventory Management System")
+        
+        # Creating UI
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Tabs
+        self.tab_control = ttk.Notebook(self.master)
+        
+        self.tab_inventory = ttk.Frame(self.tab_control)
+        self.tab_control.add(self.tab_inventory, text='Inventory')
+        
+        self.tab_reports = ttk.Frame(self.tab_control)
+        self.tab_control.add(self.tab_reports, text='Reports')
+        
+        self.tab_control.pack(expand=1, fill='both')
+        
+        # Inventory Tab
+        self.create_inventory_tab()
+        
+        # Reports Tab
+        self.create_reports_tab()
+
+    def create_inventory_tab(self):
+        # Product List
+        self.tree = ttk.Treeview(self.tab_inventory, columns=('ID', 'Name', 'Quantity', 'Price'), show='headings')
+        self.tree.heading('ID', text='ID')
+        self.tree.heading('Name', text='Name')
+        self.tree.heading('Quantity', text='Quantity')
+        self.tree.heading('Price', text='Price')
+        self.tree.pack(side='left', fill='both', expand=True)
+        
+        self.load_products()
+
+        # Product Management Buttons
+        self.button_frame = tk.Frame(self.tab_inventory)
+        self.button_frame.pack(side='right', fill='both', expand=True)
+
+        self.add_button = tk.Button(self.button_frame, text='Add Product', command=self.add_product)
+        self.add_button.pack(pady=10)
+
+        self.edit_button = tk.Button(self.button_frame, text='Edit Product', command=self.edit_product)
+        self.edit_button.pack(pady=10)
+
+        self.delete_button = tk.Button(self.button_frame, text='Delete Product', command=self.delete_product)
+        self.delete_button.pack(pady=10)
+
+        self.sell_button = tk.Button(self.button_frame, text='Log Sale', command=self.log_sale)
+        self.sell_button.pack(pady=10)
+
+    def create_reports_tab(self):
+        self.low_stock_button = tk.Button(self.tab_reports, text='Low Stock Report', command=self.low_stock_report)
+        self.low_stock_button.pack(pady=10)
+        
+        self.sales_summary_button = tk.Button(self.tab_reports, text='Sales Summary Report', command=self.sales_summary_report)
+        self.sales_summary_button.pack(pady=10)
+
+    def load_products(self):
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        
+        c.execute('SELECT * FROM products')
+        for row in c.fetchall():
+            self.tree.insert('', 'end', values=row)
+
+    def add_product(self):
+        self.product_form('Add Product')
+
+    def edit_product(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning('Warning', 'Please select a product to edit.')
+            return
+        item = self.tree.item(selected_item[0])
+        self.product_form('Edit Product', item['values'])
+
+    def delete_product(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning('Warning', 'Please select a product to delete.')
+            return
+        item = self.tree.item(selected_item[0])
+        product_id = item['values'][0]
+        c.execute('DELETE FROM products WHERE id=?', (product_id,))
+        conn.commit()
+        self.load_products()
+        messagebox.showinfo('Success', 'Product deleted successfully.')
+
+    def product_form(self, title, product=None):
+        def save_product():
+            name = name_entry.get()
+            quantity = quantity_entry.get()
+            price = price_entry.get()
+
+            if not name or not quantity or not price:
+                messagebox.showwarning('Warning', 'Please fill in all fields.')
+                return
+
+            try:
+                quantity = int(quantity)
+                price = float(price)
+            except ValueError:
+                messagebox.showwarning('Warning', 'Invalid quantity or price.')
+                return
+
+            if product:
+                c.execute('UPDATE products SET name=?, quantity=?, price=? WHERE id=?',
+                          (name, quantity, price, product[0]))
+            else:
+                c.execute('INSERT INTO products (name, quantity, price) VALUES (?, ?, ?)',
+                          (name, quantity, price))
+
+            conn.commit()
+            self.load_products()
+            form_window.destroy()
+
+        form_window = tk.Toplevel(self.master)
+        form_window.title(title)
+        
+        tk.Label(form_window, text='Name').grid(row=0, column=0)
+        name_entry = tk.Entry(form_window)
+        name_entry.grid(row=0, column=1)
+        
+        tk.Label(form_window, text='Quantity').grid(row=1, column=0)
+        quantity_entry = tk.Entry(form_window)
+        quantity_entry.grid(row=1, column=1)
+        
+        tk.Label(form_window, text='Price').grid(row=2, column=0)
+        price_entry = tk.Entry(form_window)
+        price_entry.grid(row=2, column=1)
+
+        if product:
+            name_entry.insert(0, product[1])
+            quantity_entry.insert(0, product[2])
+            price_entry.insert(0, product[3])
+        
+        save_button = tk.Button(form_window, text='Save', command=save_product)
+        save_button.grid(row=3, columnspan=2)
+
+    def log_sale(self):
+        def save_sale():
+            product_id = product_id_entry.get()
+            quantity_sold = quantity_sold_entry.get()
+
+            if not product_id or not quantity_sold:
+                messagebox.showwarning('Warning', 'Please fill in all fields.')
+                return
+
+            try:
+                product_id = int(product_id)
+                quantity_sold = int(quantity_sold)
+            except ValueError:
+                messagebox.showwarning('Warning', 'Invalid product ID or quantity sold.')
+                return
+
+            # Fetch product details
+            c.execute('SELECT * FROM products WHERE id=?', (product_id,))
+            product = c.fetchone()
+            if not product:
+                messagebox.showwarning('Warning', 'Product ID not found.')
+                return
+
+            if product[2] < quantity_sold:
+                messagebox.showwarning('Warning', 'Insufficient stock.')
+                return
+
+            total_price = product[3] * quantity_sold
+
+            # Insert the sale record
+            c.execute('INSERT INTO sales (product_id, quantity_sold, total_price) VALUES (?, ?, ?)',
+                      (product_id, quantity_sold, total_price))
+
+            # Update the product's stock
+            new_quantity = product[2] - quantity_sold
+            c.execute('UPDATE products SET quantity=? WHERE id=?', (new_quantity, product_id))
+
+            conn.commit()
+            self.load_products()
+            sale_window.destroy()
+            messagebox.showinfo('Success', 'Sale logged successfully.')
+
+        sale_window = tk.Toplevel(self.master)
+        sale_window.title('Log Sale')
+        
+        tk.Label(sale_window, text='Product ID').grid(row=0, column=0)
+        product_id_entry = tk.Entry(sale_window)
+        product_id_entry.grid(row=0, column=1)
+        
+        tk.Label(sale_window, text='Quantity Sold').grid(row=1, column=0)
+        quantity_sold_entry = tk.Entry(sale_window)
+        quantity_sold_entry.grid(row=1, column=1)
+        
+        save_button = tk.Button(sale_window, text='Save', command=save_sale)
+        save_button.grid(row=2, columnspan=2)
+
+    def low_stock_report(self):
+        low_stock_window = tk.Toplevel(self.master)
+        low_stock_window.title('Low Stock Report')
+        
+        tree = ttk.Treeview(low_stock_window, columns=('ID', 'Name', 'Quantity'), show='headings')
+        tree.heading('ID', text='ID')
+        tree.heading('Name', text='Name')
+        tree.heading('Quantity', text='Quantity')
+        tree.pack(fill='both', expand=True)
+
+        # Fetch products with quantity < 10
+        c.execute('SELECT id, name, quantity FROM products WHERE quantity < 10')
+        for row in c.fetchall():
+            tree.insert('', 'end', values=row)
+
+    def sales_summary_report(self):
+        sales_summary_window = tk.Toplevel(self.master)
+        sales_summary_window.title('Sales Summary Report')
+        
+        tree = ttk.Treeview(sales_summary_window, columns=('ID', 'Product ID', 'Quantity Sold', 'Total Price', 'Sale Date'), show='headings')
+        tree.heading('ID', text='ID')
+        tree.heading('Product ID', text='Product ID')
+        tree.heading('Quantity Sold', text='Quantity Sold')
+        tree.heading('Total Price', text='Total Price')
+        tree.heading('Sale Date', text='Sale Date')
+        tree.pack(fill='both', expand=True)
+
+        # Fetch all sales records
+        c.execute('SELECT * FROM sales')
+        for row in c.fetchall():
+            tree.insert('', 'end', values=row)
+
+# Login Screen
+class LoginScreen:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Login")
+
+        self.label_username = tk.Label(master, text="Username")
+        self.label_username.pack()
+
+        self.entry_username = tk.Entry(master)
+        self.entry_username.pack()
+
+        self.label_password = tk.Label(master, text="Password")
+        self.label_password.pack()
+
+        self.entry_password = tk.Entry(master, show="*")
+        self.entry_password.pack()
+
+        self.login_button = tk.Button(master, text="Login", command=self.login)
+        self.login_button.pack()
+
+        self.register_button = tk.Button(master, text="Register", command=self.register)
+        self.register_button.pack()
+
+        self.show_users_button = tk.Button(master, text="Show Registered Users", command=self.show_users)
+        self.show_users_button.pack()
+
+    def login(self):
+        username = self.entry_username.get()
+        password = self.entry_password.get()
+
+        if authenticate(username, password):
+            self.master.destroy()
+            root = tk.Tk()
+            app = InventorySystem(root)
+            root.mainloop()
+        else:
+            messagebox.showerror("Error", "Invalid username or password")
+
+    def register(self):
+        def save_user():
+            username = username_entry.get()
+            password = password_entry.get()
+            confirm_password = confirm_password_entry.get()
+
+            if not username or not password or not confirm_password:
+                messagebox.showwarning('Warning', 'Please fill in all fields.')
+                return
+
+            if password != confirm_password:
+                messagebox.showwarning('Warning', 'Passwords do not match.')
+                return
+
+            try:
+                c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+                conn.commit()
+                register_window.destroy()
+                messagebox.showinfo('Success', 'Registration successful. You can now log in.')
+            except sqlite3.IntegrityError:
+                messagebox.showerror('Error', 'Username already exists.')
+
+        register_window = tk.Toplevel(self.master)
+        register_window.title('Register')
+        
+        tk.Label(register_window, text='Username').grid(row=0, column=0)
+        username_entry = tk.Entry(register_window)
+        username_entry.grid(row=0, column=1)
+        
+        tk.Label(register_window, text='Password').grid(row=1, column=0)
+        password_entry = tk.Entry(register_window, show='*')
+        password_entry.grid(row=1, column=1)
+        
+        tk.Label(register_window, text='Confirm Password').grid(row=2, column=0)
+        confirm_password_entry = tk.Entry(register_window, show='*')
+        confirm_password_entry.grid(row=2, column=1)
+        
+        save_button = tk.Button(register_window, text='Register', command=save_user)
+        save_button.grid(row=3, columnspan=2)
+
+    def show_users(self):
+        def delete_selected_user():
+            selected_item = tree.selection()
+            if not selected_item:
+                messagebox.showwarning('Warning', 'Please select a user to delete.')
+                return
+            item = tree.item(selected_item[0])
+            username = item['values'][0]
+            if username == "admin":
+                messagebox.showwarning('Warning', 'The admin user cannot be deleted.')
+                return
+            c.execute('DELETE FROM users WHERE username=?', (username,))
+            conn.commit()
+            messagebox.showinfo('Success', 'User deleted successfully.')
+            load_users()
+
+        def load_users():
+            for row in tree.get_children():
+                tree.delete(row)
+            c.execute('SELECT username, password FROM users')
+            for row in c.fetchall():
+                tree.insert('', 'end', values=row)
+
+        users_window = tk.Toplevel(self.master)
+        users_window.title("Registered Users")
+        
+        tree = ttk.Treeview(users_window, columns=('Username', 'Password'), show='headings')
+        tree.heading('Username', text='Username')
+        tree.heading('Password', text='Password')
+        tree.pack(fill='both', expand=True)
+
+        delete_button = tk.Button(users_window, text='Delete Selected User', command=delete_selected_user)
+        delete_button.pack(pady=10)
+
+        load_users()
+
+# Main execution
+def main():
+    root = tk.Tk()
+    app = LoginScreen(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
