@@ -1,4 +1,4 @@
-![screenshot(118)](https://github.com/user-attachments/assets/567ee331-41d8-4698-aebc-fd1c8197722f)**Name|** SAMANJOY DAS
+**Name|** SAMANJOY DAS
 **Company|** CODTECH IT SOLUTIONS
 **ID|** CTO8PP919
 **Domain|** Python Programming
@@ -7,15 +7,43 @@
 
 
 ## Overview of the Project
+Login Page
 ![](https://github.com/user-attachments/assets/c6a4b30b-4837-4b6b-a3fc-2d07812e5bcf)
+
+Login Details Filled with details and pressed Login Button
 ![](https://github.com/user-attachments/assets/7c0b7d58-b648-4272-92b2-d49dda938a3d)
+
+A blank overview of the Inventory Management System
 ![](https://github.com/user-attachments/assets/480d61c5-e973-4041-bd8a-f2eb46b42f50)
+
+Clicked on the Add Product Button and filled the details
 ![](https://github.com/user-attachments/assets/e61e89e1-f6f1-41b0-b9b5-ca4f8dae285d)
+
+Pressed the Log Sale Button and Logged a Sale
 ![](https://github.com/user-attachments/assets/8b2f1b2b-0182-42ef-803f-c5364d055d95)
+
+Popup message displayed
 ![](https://github.com/user-attachments/assets/c7b1b67c-0a13-4763-acda-2a435a34bfad)
+
+Reports Tab
 ![](https://github.com/user-attachments/assets/8c7ff8ad-0203-4078-8802-2319ba077549)
+
+Sales Summary Report
 ![](https://github.com/user-attachments/assets/c67cd7e5-a1b1-4c66-9764-128b3bb62b21)
-[](https://github.com/user-attachments/assets/97f936c9-dfd2-4699-bea5-65dc17bcb396)
+
+Low Stock Report
+![](https://github.com/user-attachments/assets/97f936c9-dfd2-4699-bea5-65dc17bcb396)
+
+Register User Screen
+![](https://github.com/user-attachments/assets/10a4e1b3-cb43-4b7b-9fdc-1fb3c05c811b)
+
+Popup Screen after Registration is completed
+![](https://github.com/user-attachments/assets/4bc99f93-b095-4719-b6e2-b57d21c5d569)
+
+Registered Users list
+![](https://github.com/user-attachments/assets/058a63f0-a9a8-47d9-94fd-0c4a3fe50d2c)
+
+
 
 
 ### Project: Inventory Management System
