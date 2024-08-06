@@ -1,4 +1,4 @@
-![Screenshot 2024-08-06 203201](https://github.com/user-attachments/assets/73a1b51d-d665-4b81-9806-8ed9c96af489)**Name|** SAMANJOY DAS
+![screenshot(118)](https://github.com/user-attachments/assets/567ee331-41d8-4698-aebc-fd1c8197722f)**Name|** SAMANJOY DAS
 **Company|** CODTECH IT SOLUTIONS
 **ID|** CTO8PP919
 **Domain|** Python Programming
@@ -7,6 +7,15 @@
 
 
 ## Overview of the Project
+![](https://github.com/user-attachments/assets/c6a4b30b-4837-4b6b-a3fc-2d07812e5bcf)
+![](https://github.com/user-attachments/assets/7c0b7d58-b648-4272-92b2-d49dda938a3d)
+![](https://github.com/user-attachments/assets/480d61c5-e973-4041-bd8a-f2eb46b42f50)
+![](https://github.com/user-attachments/assets/e61e89e1-f6f1-41b0-b9b5-ca4f8dae285d)
+![](https://github.com/user-attachments/assets/8b2f1b2b-0182-42ef-803f-c5364d055d95)
+![](https://github.com/user-attachments/assets/c7b1b67c-0a13-4763-acda-2a435a34bfad)
+![](https://github.com/user-attachments/assets/8c7ff8ad-0203-4078-8802-2319ba077549)
+![](https://github.com/user-attachments/assets/c67cd7e5-a1b1-4c66-9764-128b3bb62b21)
+[](https://github.com/user-attachments/assets/97f936c9-dfd2-4699-bea5-65dc17bcb396)
 
 
 ### Project: Inventory Management System
